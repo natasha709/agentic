@@ -11,7 +11,7 @@ from typing import List, Optional
 import json
 import asyncio
 
-from agent import app as agent_app
+from agent import app as agent_app, add_reasoning_log, get_reasoning_logs, clear_reasoning_logs
 from langchain_core.messages import HumanMessage, AIMessage
 
 app = FastAPI(title="Sentinel AI Support Backend")
@@ -35,6 +35,9 @@ async def root():
 
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
+    # Clear previous reasoning logs
+    clear_reasoning_logs()
+    
     # Check for API Key
     api_key = os.getenv("GEMINI_API_KEY")
     
@@ -46,23 +49,37 @@ async def chat_endpoint(request: ChatRequest):
         from langchain_core.messages import HumanMessage
         config = {"configurable": {"thread_id": request.thread_id}}
         
+        add_reasoning_log("SYSTEM", f"Starting agent with query: '{request.message}'", "processing")
+        
         # Invoke the graph
         # This will return the final state after the recursion
         result = agent_app.invoke({"messages": [HumanMessage(content=request.message)]}, config)
         
-        # Extract logs from the result if implemented (otherwise return reasoning summary)
+        # Extract logs from the result
         final_answer = result["messages"][-1].content
+        
+        # Get detailed reasoning logs from the agent
+        reasoning_logs = get_reasoning_logs()
+        
+        # Add final summary log
+        final_log = {
+            "label": "SYSTEM",
+            "message": f"Agent completed. Graph traversed through {len(result['messages'])} nodes.",
+            "status": "success"
+        }
         
         return {
             "response": final_answer,
             "status": "success",
-            "logs": [
-                {"label": "SYSTEM", "message": "Autonomous agent logic executed successfully."},
-                {"label": "GRAPH", "message": f"Graph traversed through {len(result['messages'])} nodes."}
-            ]
+            "logs": reasoning_logs + [final_log]
         }
     except Exception as e:
-        return {"response": f"Agent Logic Error: {str(e)}", "status": "error", "logs": []}
+        error_log = {
+            "label": "ERROR",
+            "message": f"Agent execution failed: {str(e)}",
+            "status": "error"
+        }
+        return {"response": f"Agent Logic Error: {str(e)}", "status": "error", "logs": [error_log]}
 
 @app.websocket("/ws/chat")
 async def websocket_chat(websocket: WebSocket):

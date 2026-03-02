@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+langgraph
+langchain-google-genai
+langchain
+pydantic
+python-dotenv
+chromadb
+faiss-cpu
+psutil

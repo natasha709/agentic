@@ -68,7 +68,7 @@ export default function SupportDashboard() {
     const fetchMetrics = async () => {
       try {
         const start = Date.now()
-        const response = await axios.get('http://127.0.0.1:8001/metrics')
+        const response = await axios.get('http://127.0.0.1:8000/metrics')
         const latencyMs = Date.now() - start
         setMetrics(response.data)
         setLatency(latencyMs)
@@ -116,7 +116,7 @@ export default function SupportDashboard() {
 
     try {
       const start = Date.now()
-      const response = await axios.post('http://127.0.0.1:8001/chat', {
+      const response = await axios.post('http://127.0.0.1:8000/chat', {
         message: input,
         thread_id: threadId
       })
@@ -185,7 +185,7 @@ export default function SupportDashboard() {
     setIsTyping(true)
     
     try {
-      const response = await axios.post('http://127.0.0.1:8001/confirm', {
+      const response = await axios.post('http://127.0.0.1:8000/confirm', {
         thread_id: threadId,
         tool_name: confirmation.tool_name,
         approved: approved,

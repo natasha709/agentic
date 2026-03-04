@@ -8,3 +8,6 @@ python-dotenv
 chromadb
 faiss-cpu
 psutil
+pytest
+pytest-asyncio
+httpx

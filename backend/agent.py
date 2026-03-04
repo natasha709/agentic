@@ -691,8 +691,249 @@ Users have been notified.
     logger.add_observation(f"Service {service_name} restarted successfully", {"service": service_name})
     return result
 
+
+@tool
+def network_diagnostics(target: str, diagnostic_type: str = "ping"):
+    """
+    Perform network diagnostics on a target host.
+    
+    Args:
+        target: The target hostname or IP address
+        diagnostic_type: Type of diagnostic - "ping", "dns", "traceroute", or "port_check"
+    
+    Returns:
+        Diagnostic results including latency, packet loss, DNS resolution, or port status
+    """
+    import socket
+    import time
+    import random
+    
+    logger.add_action("Running network diagnostics", "network_diagnostics", {"target": target, "type": diagnostic_type})
+    
+    results = {}
+    
+    if diagnostic_type == "ping":
+        # Simulate ping results
+        results = {
+            "target": target,
+            "type": "ping",
+            "packets_sent": 4,
+            "packets_received": 4,
+            "packet_loss": "0%",
+            "min_latency": f"{random.uniform(1, 20):.1f}ms",
+            "max_latency": f"{random.uniform(20, 50):.1f}ms",
+            "avg_latency": f"{random.uniform(10, 30):.1f}ms",
+            "status": "success"
+        }
+        logger.add_observation("Ping diagnostics completed", results)
+        
+    elif diagnostic_type == "dns":
+        try:
+            start = time.time()
+            ip = socket.gethostbyname(target)
+            elapsed = (time.time() - start) * 1000
+            results = {
+                "target": target,
+                "type": "dns",
+                "resolved_ip": ip,
+                "resolution_time": f"{elapsed:.2f}ms",
+                "status": "success"
+            }
+        except socket.gaierror as e:
+            results = {
+                "target": target,
+                "type": "dns",
+                "error": str(e),
+                "status": "failed"
+            }
+        logger.add_observation("DNS lookup completed", results)
+        
+    elif diagnostic_type == "traceroute":
+        # Simulate traceroute
+        hops = []
+        for i in range(1, 6):
+            hops.append({
+                "hop": i,
+                "address": f"192.168.{random.randint(1,255)}.{random.randint(1,255)}",
+                "rtt": f"{random.uniform(1, 20):.1f}ms"
+            })
+        results = {
+            "target": target,
+            "type": "traceroute",
+            "hops": hops,
+            "total_hops": len(hops),
+            "status": "success"
+        }
+        logger.add_observation("Traceroute completed", results)
+        
+    elif diagnostic_type == "port_check":
+        # Simulate port check
+        common_ports = [22, 80, 443, 3306, 5432, 8080]
+        port_results = {}
+        for port in common_ports:
+            port_results[port] = "open" if random.random() > 0.3 else "closed"
+        results = {
+            "target": target,
+            "type": "port_check",
+            "ports": port_results,
+            "status": "success"
+        }
+        logger.add_observation("Port scan completed", results)
+    
+    return f"=== Network Diagnostics Results ===\nTarget: {target}\nType: {diagnostic_type}\n\n{json.dumps(results, indent=2)}"
+
+
+@tool
+def user_management(action: str, username: str = None, server: str = "localhost"):
+    """
+    Manage user accounts on a server.
+    
+    Args:
+        action: Action to perform - "list", "status", "unlock", "disable", "enable"
+        username: Username to manage (required for status/unlock/disable/enable actions)
+        server: Target server (default: localhost)
+    
+    Returns:
+        Results of the user management action
+    """
+    import random
+    
+    logger.add_action(f"Performing user management: {action}", "user_management", {"action": action, "username": username})
+    
+    if action == "list":
+        users = [
+            {"username": "admin", "status": "active", "last_login": "2024-01-15 09:30:00", "role": "administrator"},
+            {"username": "jsmith", "status": "active", "last_login": "2024-01-14 16:45:00", "role": "user"},
+            {"username": "mjones", "status": "locked", "last_login": "2024-01-10 08:15:00", "role": "user"},
+            {"username": "bwilliams", "status": "active", "last_login": "2024-01-15 11:20:00", "role": "user"},
+            {"username": "sysop", "status": "disabled", "last_login": "2023-12-01 00:00:00", "role": "system"}
+        ]
+        return f"=== User List ({server}) ===\n" + "\n".join([f"{u['username']}: {u['status']} (role: {u['role']})" for u in users])
+    
+    elif action == "status":
+        if not username:
+            return "Error: Username required for status check"
+        
+        return f"=== User Status ===\nUsername: {username}\nStatus: {random.choice(['active', 'locked', 'disabled'])}\nLast Login: 2024-01-15 09:30:00\nPassword Expires: 2024-02-15\nMFA Enabled: Yes"
+    
+    elif action == "unlock":
+        if not username:
+            return "Error: Username required for unlock"
+        
+        logger.add_observation(f"User {username} unlocked successfully", {"username": username})
+        return f"=== User Unlocked ===\nUsername: {username}\nStatus: Unlocked successfully\nServer: {server}"
+    
+    elif action == "disable":
+        if not username:
+            return "Error: Username required for disable"
+        
+        logger.add_observation(f"User {username} disabled", {"username": username})
+        return f"=== User Disabled ===\nUsername: {username}\nStatus: Disabled\nServer: {server}"
+    
+    elif action == "enable":
+        if not username:
+            return "Error: Username required for enable"
+        
+        logger.add_observation(f"User {username} enabled", {"username": username})
+        return f"=== User Enabled ===\nUsername: {username}\nStatus: Enabled\nServer: {server}"
+    
+    return "Error: Unknown action. Use: list, status, unlock, disable, enable"
+
+
+@tool
+def process_management(action: str, process_name: str = None, pid: int = None, server: str = "localhost"):
+    """
+    Manage processes on a server.
+    
+    Args:
+        action: Action to perform - "list", "kill", "restart", "info"
+        process_name: Name of the process (for list/restart)
+        pid: Process ID (for kill/info)
+        server: Target server (default: localhost)
+    
+    Returns:
+        Results of the process management action
+    """
+    import random
+    
+    logger.add_action(f"Performing process management: {action}", "process_management", {"action": action, "process": process_name or pid})
+    
+    if action == "list":
+        processes = [
+            {"pid": 1, "name": "systemd", "cpu": 0.1, "memory": 0.3, "status": "running"},
+            {"pid": 234, "name": "sshd", "cpu": 0.0, "memory": 0.2, "status": "running"},
+            {"pid": 456, "name": "nginx", "cpu": 1.2, "memory": 2.5, "status": "running"},
+            {"pid": 789, "name": "postgres", "cpu": 3.4, "memory": 8.2, "status": "running"},
+            {"pid": 1024, "name": "python", "cpu": 0.5, "memory": 1.1, "status": "running"},
+            {"pid": 2048, "name": "node", "cpu": 2.1, "memory": 4.3, "status": "running"}
+        ]
+        
+        if process_name:
+            processes = [p for p in processes if process_name.lower() in p["name"].lower()]
+        
+        result = f"=== Process List ({server}) ===\n"
+        result += "PID     | Name       | CPU%  | Memory% | Status\n"
+        result += "-" * 55 + "\n"
+        for p in processes:
+            result += f"{p['pid']:7} | {p['name']:10} | {p['cpu']:5.1f} | {p['memory']:7.1f} | {p['status']}\n"
+        return result
+    
+    elif action == "kill":
+        target = pid or process_name
+        if not target:
+            return "Error: PID or process name required"
+        
+        logger.add_observation(f"Process {target} terminated", {"target": target})
+        return f"=== Process Terminated ===\nTarget: {target}\nStatus: Successfully terminated\nServer: {server}"
+    
+    elif action == "restart":
+        if not process_name:
+            return "Error: Process name required for restart"
+        
+        logger.add_observation(f"Process {process_name} restarted", {"process_name": process_name})
+        return f"=== Process Restarted ===\nProcess: {process_name}\nStatus: Successfully restarted\nServer: {server}"
+    
+    elif action == "info":
+        if not pid:
+            return "Error: PID required for info"
+        
+        return f"=== Process Info ===\nPID: {pid}\nName: sample_process\nCPU: 1.5%\nMemory: 3.2%\nThreads: 8\nUser: root\nUptime: 2d 3h 45m"
+    
+    return "Error: Unknown action. Use: list, kill, restart, info"
+
+
+@tool
+def ssl_certificate_check(domain: str):
+    """
+    Check SSL certificate status for a domain.
+    
+    Args:
+        domain: The domain to check (e.g., example.com)
+    
+    Returns:
+        SSL certificate information including validity, expiry, and issuer
+    """
+    import random
+    from datetime import datetime, timedelta
+    
+    logger.add_action("Checking SSL certificate", "ssl_certificate_check", {"domain": domain})
+    
+    days_until_expiry = random.randint(-30, 90)
+    expiry_date = datetime.now() + timedelta(days=days_until_expiry)
+    
+    result = f"=== SSL Certificate Check ===\nDomain: {domain}\n"
+    result += f"Valid: {'Yes' if days_until_expiry > 0 else 'No - EXPIRED'}\n"
+    result += f"Issuer: Let's Encrypt Authority X3\n"
+    result += f"Valid From: {(datetime.now() - timedelta(days=random.randint(30, 365))).strftime('%Y-%m-%d')}\n"
+    result += f"Valid Until: {expiry_date.strftime('%Y-%m-%d')}\n"
+    result += f"Days Remaining: {days_until_expiry}\n"
+    result += f"Protocol: TLS 1.3\n"
+    result += f"Cipher: ECDHE-RSA-AES256-GCM-SHA384"
+    
+    return result
+
 # Tool list
-tools = [kb_search, log_search, status_check, server_metrics, create_ticket, restart_service]
+tools = [kb_search, log_search, status_check, server_metrics, create_ticket, restart_service, network_diagnostics, user_management, process_management, ssl_certificate_check]
 tool_node = ToolNode(tools)
 
 

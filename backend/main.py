@@ -160,6 +160,122 @@ async def chat_endpoint(request: ChatRequest):
         }
     }
 
+
+@app.websocket("/ws/chat")
+async def websocket_chat(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time streaming chat.
+    
+    Clients connect and send messages as JSON:
+    {"message": "your message", "thread_id": "optional-thread-id"}
+    
+    Server streams responses as JSON events:
+    - {"type": "log", "data": {...}}
+    - {"type": "chunk", "data": "response text"}
+    - {"type": "done", "data": {...}}
+    - {"type": "error", "data": "error message"}
+    """
+    await websocket.accept()
+    thread_id = "default"
+    
+    try:
+        # Receive initial message
+        data = await websocket.receive_text()
+        message_data = json.loads(data)
+        message = message_data.get("message", "")
+        thread_id = message_data.get("thread_id", "default")
+        
+        # Send acknowledgment
+        await websocket.send_json({
+            "type": "status",
+            "data": {"message": "Processing your request...", "thread_id": thread_id}
+        })
+        
+        # Initialize logger
+        logger.set_session(thread_id)
+        logger.add_log("SYSTEM", f"WebSocket session started: {thread_id}", "processing")
+        
+        # Check if mock mode
+        mock_mode = os.getenv("USE_MOCK_MODE", "false").lower() == "true"
+        
+        if mock_mode:
+            # Mock streaming response
+            response = f"I understand you're asking about: '{message}'. As Sentinel AI, I would help you troubleshoot this IT issue."
+            for i in range(0, len(response), 20):
+                chunk = response[i:i+20]
+                await websocket.send_json({"type": "chunk", "data": chunk})
+                await asyncio.sleep(0.05)  # Simulate streaming delay
+            
+            await websocket.send_json({
+                "type": "done",
+                "data": {
+                    "status": "success",
+                    "logs": logger.get_logs(),
+                    "thread_id": thread_id
+                }
+            })
+        else:
+            # Real AI mode
+            try:
+                # Create initial state
+                initial_state = {
+                    "messages": [HumanMessage(content=message)],
+                    "thread_id": thread_id,
+                    "next_step": "safety_check",
+                    "requires_confirmation": False,
+                    "confirmation_pending": False
+                }
+                
+                # Stream logs as they come
+                await websocket.send_json({
+                    "type": "log",
+                    "data": {"category": "SYSTEM", "message": "Invoking AI agent..."}
+                })
+                
+                # Invoke agent
+                result = agent_app.invoke(initial_state)
+                
+                # Extract response and stream it
+                response_text = ""
+                for msg in reversed(result.get("messages", [])):
+                    if hasattr(msg, 'content') and msg.content and not hasattr(msg, 'tool_calls'):
+                        response_text = msg.content
+                        break
+                
+                # Stream the response in chunks
+                if response_text:
+                    for i in range(0, len(response_text), 30):
+                        chunk = response_text[i:i+30]
+                        await websocket.send_json({"type": "chunk", "data": chunk})
+                        await asyncio.sleep(0.02)
+                
+                # Send final message with logs
+                await websocket.send_json({
+                    "type": "done",
+                    "data": {
+                        "status": "success",
+                        "logs": logger.get_logs(),
+                        "thread_id": thread_id
+                    }
+                })
+                
+            except Exception as e:
+                await websocket.send_json({
+                    "type": "error",
+                    "data": f"AI processing error: {str(e)}"
+                })
+                
+    except Exception as e:
+        try:
+            await websocket.send_json({
+                "type": "error",
+                "data": f"Connection error: {str(e)}"
+            })
+        except:
+            pass
+    finally:
+        logger.add_log("SYSTEM", f"WebSocket session ended: {thread_id}", "success")
+
 @app.post("/confirm")
 async def handle_confirmation(request: ConfirmationRequest):
     """
@@ -278,6 +394,66 @@ async def get_knowledge_base():
             {"id": "storage-001", "title": "Disk Space Management", "category": "storage"}
         ]
     }
+
+
+# Simple analytics storage (in production, use a database)
+analytics_data = {
+    "total_conversations": 0,
+    "total_messages": 0,
+    "tools_used": {},
+    "session_history": [],
+    "daily_stats": {}
+}
+
+
+@app.get("/analytics")
+async def get_analytics():
+    """
+    Get usage analytics and statistics.
+    
+    Returns:
+        - Total conversations and messages
+        - Tools usage statistics
+        - Session history
+        - Daily activity stats
+    """
+    return {
+        "overview": {
+            "total_conversations": analytics_data["total_conversations"],
+            "total_messages": analytics_data["total_messages"],
+            "active_sessions": len(memory.sessions)
+        },
+        "tools_usage": analytics_data["tools_used"],
+        "recent_sessions": analytics_data["session_history"][-10:] if analytics_data["session_history"] else [],
+        "daily_stats": analytics_data["daily_stats"]
+    }
+
+
+@app.post("/analytics/track")
+async def track_event(event: dict):
+    """
+    Track an analytics event.
+    
+    Request body:
+    {
+        "event_type": "conversation_start|message|tool_use",
+        "data": {...}
+    }
+    """
+    event_type = event.get("event_type")
+    event_data = event.get("data", {})
+    
+    if event_type == "conversation_start":
+        analytics_data["total_conversations"] += 1
+        
+    elif event_type == "message":
+        analytics_data["total_messages"] += 1
+        
+    elif event_type == "tool_use":
+        tool_name = event_data.get("tool_name", "unknown")
+        analytics_data["tools_used"][tool_name] = analytics_data["tools_used"].get(tool_name, 0) + 1
+    
+    return {"status": "tracked"}
 
 
 

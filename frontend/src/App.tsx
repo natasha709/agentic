@@ -25,7 +25,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Types
+
 interface Message {
   id: number
   type: 'user' | 'bot' | 'system'

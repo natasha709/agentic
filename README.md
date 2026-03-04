@@ -51,8 +51,8 @@ cd backend
 
 # Create virtual environment
 python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate 
+# source venv/bin/activate  
 
 # Install dependencies
 pip install -r requirements.txt
@@ -289,7 +289,7 @@ MIT License
 
 An intelligent AI-powered IT support assistant that uses multi-step reasoning, RAG (Retrieval-Augmented Generation), and safety controls to help troubleshoot common IT issues.
 
-## 🚀 Features
+##  Features
 
 - **Multi-step Reasoning**: LangGraph-powered agent with stateful conversation flow
 - **RAG Knowledge Base**: ChromaDB/FAISS vector database for retrieving relevant runbooks and guides
@@ -299,7 +299,7 @@ An intelligent AI-powered IT support assistant that uses multi-step reasoning, R
 - **Real-time Observability**: Detailed reasoning logs showing agent thought process
 - **Modern UI**: React frontend with smooth animations and intuitive interface
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 ### Backend
 - **FastAPI** - Modern Python web framework
@@ -317,13 +317,13 @@ An intelligent AI-powered IT support assistant that uses multi-step reasoning, R
 - **Framer Motion** - Animations
 - **Lucide React** - Icons
 
-## 📋 Prerequisites
+##  Prerequisites
 
 - Python 3.10+
 - Node.js 18+
 - Google AI API key (Gemini)
 
-## 🔧 Installation
+##  Installation
 
 ### 1. Clone the repository
 
@@ -338,8 +338,8 @@ cd backend
 
 # Create virtual environment
 python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate  
+# source venv/bin/activate 
 
 # Install dependencies
 pip install -r requirements.txt
@@ -358,7 +358,7 @@ cd frontend
 npm install
 ```
 
-## ⚙️ Configuration
+##  Configuration
 
 ### Backend Environment Variables (backend/.env)
 
@@ -377,7 +377,7 @@ EMBEDDING_MODEL=gemini-embedding-001
 
 The frontend connects to `http://localhost:8000` by default. To change this, update the API URL in [`frontend/src/App.tsx`](frontend/src/App.tsx).
 
-## 🚦 Running the Application
+##  Running the Application
 
 ### Start Backend
 
@@ -397,7 +397,7 @@ npm run dev
 
 The application will open at `http://localhost:5173`
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 agentic/
@@ -421,7 +421,7 @@ agentic/
 └── TODO.md                  # Development tasks
 ```
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 ### POST /chat
 Send a message to the AI assistant.
@@ -466,7 +466,7 @@ Confirm a pending tool execution.
 ### WebSocket /ws/chat
 Real-time streaming chat (optional enhancement).
 
-## 🤖 Available Tools
+##  Available Tools
 
 The agent has access to the following tools:
 
@@ -474,7 +474,7 @@ The agent has access to the following tools:
 - **get_server_metrics**: Retrieve current server performance metrics
 - **restart_service**: Restart a specific system service (requires confirmation)
 
-## 📝 Knowledge Base
+##  Knowledge Base
 
 Add markdown files to [`backend/data/runbooks/`](backend/data/runbooks/) to expand the AI's knowledge. The RAG system will automatically index these documents.
 
@@ -482,14 +482,14 @@ Example runbooks included:
 - VPN Setup Guide
 - Website Troubleshooting Guide
 
-## 🔒 Safety Features
+##  Safety Features
 
 - **Confirmation Required**: Dangerous operations (like service restarts) require explicit user confirmation
 - **Input Validation**: All user inputs are validated and sanitized
 - **Rate Limiting**: API endpoints have basic rate limiting
 - **Error Handling**: Comprehensive error handling with user-friendly messages
 
-## 🧪 Development
+##  Development
 
 ### Running Tests
 ```bash
@@ -507,11 +507,11 @@ npm test
 2. Add it to the tools list
 3. Update the agent graph if needed
 
-## 📄 License
+##  License
 
 MIT License
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - [LangGraph](https://langchain-ai.github.io/langgraph/) - Agent orchestration
 - [Google AI](https://ai.google/) - LLM powered by Gemini

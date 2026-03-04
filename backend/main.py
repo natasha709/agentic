@@ -53,9 +53,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ============================================
-# REQUEST/RESPONSE MODELS
-# ============================================
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -71,9 +69,6 @@ class ConfirmationRequest(BaseModel):
 class MemoryRequest(BaseModel):
     thread_id: str
 
-# ============================================
-# ENDPOINTS
-# ============================================
 
 @app.get("/")
 async def root():
@@ -284,9 +279,7 @@ async def get_knowledge_base():
         ]
     }
 
-# ============================================
-# WEBSOCKET FOR REAL-TIME UPDATES
-# ============================================
+
 
 @app.websocket("/ws/chat")
 async def websocket_chat(websocket: WebSocket):
@@ -341,9 +334,7 @@ async def websocket_chat(websocket: WebSocket):
             "content": f"Connection error: {str(e)}"
         })
 
-# ============================================
-# RUN SERVER
-# ============================================
+
 
 if __name__ == "__main__":
     import uvicorn

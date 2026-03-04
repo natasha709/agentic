@@ -30,9 +30,6 @@ from dotenv import load_dotenv
 env_path = Path(__file__).parent / '.env'
 load_dotenv(env_path)
 
-# ============================================
-# OBSERVABILITY - Reasoning Logs System
-# ============================================
 
 class ObservabilityLogger:
     """Comprehensive observability system for agent reasoning"""
@@ -50,9 +47,9 @@ class ObservabilityLogger:
         """Add a structured log entry"""
         entry = {
             "timestamp": datetime.now().isoformat(),
-            "category": category,  # THOUGHT, ACTION, OBSERVATION, REFLECTION, SAFETY, ERROR
+            "category": category,  
             "message": message,
-            "status": status,  # processing, success, error, warning
+            "status": status,  
             "metadata": metadata or {}
         }
         self.logs.append(entry)
@@ -94,9 +91,7 @@ class ObservabilityLogger:
 # Global logger instance
 logger = ObservabilityLogger()
 
-# ============================================
-# SAFETY CONTROLS
-# ============================================
+
 
 class SafetyController:
     """Safety controls for prompt injection, tool misuse, and sensitive data"""
@@ -120,8 +115,8 @@ class SafetyController:
     
     # Sensitive data patterns to redact
     SENSITIVE_PATTERNS = [
-        r"\b\d{16}\b",  # Credit card numbers
-        r"\b\d{3}-\d{2}-\d{4}\b",  # SSN
+        r"\b\d{16}\b",  
+        r"\b\d{3}-\d{2}-\d{4}\b",  
         r"api[_-]?key['\"]?\s*[:=]\s*['\"]?\w+",
         r"password['\"]?\s*[:=]\s*['\"]?\w+",
         r"secret['\"]?\s*[:=]\s*['\"]?\w+",
@@ -171,9 +166,7 @@ class SafetyController:
 
 safety = SafetyController()
 
-# ============================================
-# MEMORY SYSTEM - Conversation Context
-# ============================================
+
 
 class ConversationMemory:
     """Persistent memory for conversation context"""
@@ -213,7 +206,7 @@ class ConversationMemory:
             return "No previous context."
             
         summary_parts = []
-        for turn in history[-3:]:  # Last 3 turns
+        for turn in history[-3:]:  
             summary_parts.append(f"User: {turn['user'][:100]}")
             summary_parts.append(f"Agent: {turn['agent'][:100]}")
             
@@ -227,9 +220,7 @@ class ConversationMemory:
 # Global memory instance
 memory = ConversationMemory()
 
-# ============================================
-# RAG SYSTEM - Knowledge Base Search
-# ============================================
+
 
 class KnowledgeBaseRAG:
     """RAG system using ChromaDB for knowledge retrieval"""
@@ -436,9 +427,7 @@ class KnowledgeBaseRAG:
 # Global RAG instance
 rag = KnowledgeBaseRAG()
 
-# ============================================
-# TOOLS DEFINITION
-# ============================================
+
 
 @tool
 def kb_search(query: str, category: str = None):
@@ -706,9 +695,7 @@ Users have been notified.
 tools = [kb_search, log_search, status_check, server_metrics, create_ticket, restart_service]
 tool_node = ToolNode(tools)
 
-# ============================================
-# AGENT STATE & GRAPH
-# ============================================
+
 
 class AgentState(TypedDict):
     """State managed throughout the agent execution"""
@@ -718,9 +705,7 @@ class AgentState(TypedDict):
     requires_confirmation: bool
     confirmation_pending: bool
 
-# ============================================
-# AGENT NODES
-# ============================================
+
 
 def safety_check_node(state: AgentState) -> AgentState:
     """Initial safety check for user input"""
@@ -892,9 +877,7 @@ def save_to_memory(state: AgentState) -> AgentState:
     
     return state
 
-# ============================================
-# BUILD THE GRAPH
-# ============================================
+
 
 workflow = StateGraph(AgentState)
 
@@ -934,9 +917,7 @@ workflow.add_edge("memory", END)
 # Compile the app
 app = workflow.compile()
 
-# ============================================
-# EXPORT FUNCTIONS
-# ============================================
+
 
 __all__ = [
     'app',

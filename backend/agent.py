@@ -932,8 +932,140 @@ def ssl_certificate_check(domain: str):
     
     return result
 
+
+@tool
+def email_management(action: str, email_address: str = None):
+    """
+    Manage email accounts and diagnose email issues.
+    
+    Args:
+        action: Action to perform - "check", "quota", "devices", "rules", "sync"
+        email_address: The email address to manage (required for all actions except "sync")
+    
+    Returns:
+        Email account information and status
+    """
+    import random
+    from datetime import datetime, timedelta
+    
+    logger.add_action(f"Performing email management: {action}", "email_management", {"action": action, "email": email_address})
+    
+    if action == "check":
+        # Check overall email health
+        if not email_address:
+            return "Error: Email address required for health check"
+        
+        result = f"=== Email Health Check ===\nEmail: {email_address}\n"
+        result += f"Status: Active\n"
+        result += f"Last Check: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        result += f"\n--- Account Status ---\n"
+        result += f"Account Active: Yes\n"
+        result += f"Password Expires: 2024-03-01\n"
+        result += f"MFA Enabled: Yes\n"
+        result += f"\n--- Server Status ---\n"
+        result += f"IMAP Server: Online\n"
+        result += f"SMTP Server: Online\n"
+        result += f"Spam Filter: Active\n"
+        result += f"\n--- Recent Activity ---\n"
+        result += f"Last Login: 2024-01-15 09:30:00\n"
+        result += f"Login IP: 192.168.1.100\n"
+        result += f"Failed Logins (24h): 0"
+        
+        logger.add_observation("Email health check completed", {"email": email_address})
+        return result
+    
+    elif action == "quota":
+        if not email_address:
+            return "Error: Email address required for quota check"
+        
+        # Simulate mailbox quota
+        used_mb = random.randint(500, 4500)
+        quota_mb = 5000
+        used_percent = (used_mb / quota_mb) * 100
+        
+        result = f"=== Email Quota Report ===\nEmail: {email_address}\n"
+        result += f"\n--- Storage ---\n"
+        result += f"Used: {used_mb} MB\n"
+        result += f"Quota: {quota_mb} MB\n"
+        result += f"Available: {quota_mb - used_mb} MB\n"
+        result += f"Usage: {used_percent:.1f}%\n"
+        result += f"\n--- Breakdown ---\n"
+        result += f"Inbox: {int(used_mb * 0.4)} MB\n"
+        result += f"Sent: {int(used_mb * 0.2)} MB\n"
+        result += f"Drafts: {int(used_mb * 0.05)} MB\n"
+        result += f"Trash: {int(used_mb * 0.1)} MB\n"
+        result += f"Archive: {int(used_mb * 0.25)} MB"
+        
+        if used_percent > 90:
+            result += f"\n\n⚠️ WARNING: Mailbox is nearly full. Consider archiving old emails."
+        
+        logger.add_observation("Email quota check completed", {"email": email_address, "used_mb": used_mb})
+        return result
+    
+    elif action == "devices":
+        if not email_address:
+            return "Error: Email address required for device check"
+        
+        devices = [
+            {"device": "MacBook Pro", "type": "Desktop", "last_sync": "2024-01-15 09:30:00", "status": "active"},
+            {"device": "iPhone 15", "type": "Mobile", "last_sync": "2024-01-15 08:45:00", "status": "active"},
+            {"device": "iPad Air", "type": "Tablet", "last_sync": "2024-01-14 22:00:00", "status": "inactive"}
+        ]
+        
+        result = f"=== Synced Devices ===\nEmail: {email_address}\n\n"
+        result += "Device          | Type     | Last Sync            | Status\n"
+        result += "-" * 65 + "\n"
+        for d in devices:
+            result += f"{d['device']:16} | {d['type']:8} | {d['last_sync']:19} | {d['status']}\n"
+        
+        result += f"\nTotal Devices: {len(devices)}\nActive: {sum(1 for d in devices if d['status'] == 'active')}"
+        
+        logger.add_observation("Email devices check completed", {"email": email_address, "devices": len(devices)})
+        return result
+    
+    elif action == "rules":
+        if not email_address:
+            return "Error: Email address required for rules check"
+        
+        rules = [
+            {"name": "Move newsletters to Archive", "enabled": True, "priority": 1},
+            {"name": "Auto-reply when OOO", "enabled": False, "priority": 2},
+            {"name": "Flag emails from manager", "enabled": True, "priority": 3},
+            {"name": "Delete spam after 30 days", "enabled": True, "priority": 4}
+        ]
+        
+        result = f"=== Email Rules ===\nEmail: {email_address}\n\n"
+        result += "Rule                           | Enabled | Priority\n"
+        result += "-" * 55 + "\n"
+        for r in rules:
+            result += f"{r['name']:30} | {'Yes' if r['enabled'] else 'No':7} | {r['priority']}\n"
+        
+        logger.add_observation("Email rules check completed", {"email": email_address, "rules": len(rules)})
+        return result
+    
+    elif action == "sync":
+        # Global sync status
+        result = "=== Email Sync Status ===\n\n"
+        result += "--- Server Status ---\n"
+        result += "IMAP Server: Online (imap.company.com:993)\n"
+        result += "SMTP Server: Online (smtp.company.com:587)\n"
+        result += "Exchange Server: Online\n"
+        result += "\n--- Sync Queue ---\n"
+        result += "Pending Emails: 0\n"
+        result += "Failed Syncs: 0\n"
+        result += "Last Full Sync: 2024-01-15 09:30:00\n"
+        result += "\n--- Active Connections ---\n"
+        result += "Webmail: Connected\n"
+        result += "Mobile: Connected (3 devices)\n"
+        result += "Desktop: Connected (1 device)"
+        
+        logger.add_observation("Email sync status checked", {"status": "healthy"})
+        return result
+    
+    return "Error: Unknown action. Use: check, quota, devices, rules, or sync"
+
 # Tool list
-tools = [kb_search, log_search, status_check, server_metrics, create_ticket, restart_service, network_diagnostics, user_management, process_management, ssl_certificate_check]
+tools = [kb_search, log_search, status_check, server_metrics, create_ticket, restart_service, network_diagnostics, user_management, process_management, ssl_certificate_check, email_management]
 tool_node = ToolNode(tools)
 
 

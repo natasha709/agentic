@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import axios from 'axios'
 import App from '../App'
 
-// Mock axios
+
 vi.mock('axios')
 
 describe('App Component', () => {
@@ -18,7 +18,6 @@ describe('App Component', () => {
 
   it('renders the application title', () => {
     render(<App />)
-    // Use getAllByText since there are multiple elements with "Sentinel AI"
     expect(screen.getAllByText(/Sentinel AI/i).length).toBeGreaterThan(0)
   })
 
@@ -30,7 +29,6 @@ describe('App Component', () => {
 
   it('has a send button', () => {
     render(<App />)
-    // The send button exists but may be disabled
     const buttons = screen.getAllByRole('button')
     expect(buttons.length).toBeGreaterThan(0)
   })
@@ -52,7 +50,6 @@ describe('App Component', () => {
     
     const input = screen.getByPlaceholderText(/Describe your IT issue/i)
     const buttons = screen.getAllByRole('button')
-    // Find the send button (should be the one with Send icon or last button)
     const sendButton = buttons[buttons.length - 1]
     
     await user.type(input, 'Test message')
@@ -66,7 +63,7 @@ describe('App Component', () => {
   it('displays error message on API failure', async () => {
     const user = userEvent.setup()
     
-    // Mock axios post to throw an error
+  
     vi.mocked(axios.post).mockRejectedValue(new Error('Network error'))
     
     render(<App />)

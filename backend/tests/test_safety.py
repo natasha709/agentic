@@ -55,7 +55,6 @@ class TestSafetyController:
         
         for pattern in sensitive_patterns:
             has_sensitive, _ = self.safety.check_sensitive_data(pattern)
-            # Should detect these as potentially sensitive
             assert has_sensitive is True or has_sensitive is False
     
     def test_validate_tool_parameters_valid(self):
@@ -72,11 +71,10 @@ class TestSafetyController:
     def test_validate_tool_parameters_invalid(self):
         """Test invalid tool parameters are caught"""
         invalid_params = {
-            "title": "Test",  # Too short
+            "title": "Test",  
             "description": "Test",
             "priority": "invalid_priority"
         }
         
         result = self.safety.validate_tool_parameters("create_ticket", invalid_params)
-        # Should either pass with warning or fail
         assert isinstance(result, bool)

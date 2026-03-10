@@ -24,13 +24,11 @@ class TestConversationMemory:
         """Test adding messages to a thread"""
         thread_id = "test_thread_1"
         
-        # Add user message
+       
         self.memory.add_message(thread_id, "user", "Hello, I need help")
-        
-        # Add bot message
         self.memory.add_message(thread_id, "bot", "Hello! How can I assist you?")
         
-        # Verify messages were added
+      
         messages = self.memory.get_messages(thread_id)
         assert len(messages) == 2
         assert messages[0]["role"] == "user"
@@ -45,16 +43,10 @@ class TestConversationMemory:
         """Test clearing a thread's messages"""
         thread_id = "test_thread_2"
         
-        # Add messages
+       
         self.memory.add_message(thread_id, "user", "Test message")
-        
-        # Verify messages exist
         assert len(self.memory.get_messages(thread_id)) > 0
-        
-        # Clear thread
         self.memory.clear_thread(thread_id)
-        
-        # Verify messages are cleared
         assert len(self.memory.get_messages(thread_id)) == 0
     
     def test_multiple_threads(self):

@@ -713,7 +713,6 @@ def network_diagnostics(target: str, diagnostic_type: str = "ping"):
     results = {}
     
     if diagnostic_type == "ping":
-        # Simulate ping results
         results = {
             "target": target,
             "type": "ping",
@@ -749,7 +748,6 @@ def network_diagnostics(target: str, diagnostic_type: str = "ping"):
         logger.add_observation("DNS lookup completed", results)
         
     elif diagnostic_type == "traceroute":
-        # Simulate traceroute
         hops = []
         for i in range(1, 6):
             hops.append({
@@ -767,7 +765,6 @@ def network_diagnostics(target: str, diagnostic_type: str = "ping"):
         logger.add_observation("Traceroute completed", results)
         
     elif diagnostic_type == "port_check":
-        # Simulate port check
         common_ports = [22, 80, 443, 3306, 5432, 8080]
         port_results = {}
         for port in common_ports:
@@ -951,7 +948,6 @@ def email_management(action: str, email_address: str = None):
     logger.add_action(f"Performing email management: {action}", "email_management", {"action": action, "email": email_address})
     
     if action == "check":
-        # Check overall email health
         if not email_address:
             return "Error: Email address required for health check"
         
@@ -978,7 +974,7 @@ def email_management(action: str, email_address: str = None):
         if not email_address:
             return "Error: Email address required for quota check"
         
-        # Simulate mailbox quota
+       
         used_mb = random.randint(500, 4500)
         quota_mb = 5000
         used_percent = (used_mb / quota_mb) * 100
@@ -1044,7 +1040,6 @@ def email_management(action: str, email_address: str = None):
         return result
     
     elif action == "sync":
-        # Global sync status
         result = "=== Email Sync Status ===\n\n"
         result += "--- Server Status ---\n"
         result += "IMAP Server: Online (imap.company.com:993)\n"
@@ -1064,7 +1059,7 @@ def email_management(action: str, email_address: str = None):
     
     return "Error: Unknown action. Use: check, quota, devices, rules, or sync"
 
-# Tool list
+
 tools = [kb_search, log_search, status_check, server_metrics, create_ticket, restart_service, network_diagnostics, user_management, process_management, ssl_certificate_check, email_management]
 tool_node = ToolNode(tools)
 
@@ -1085,7 +1080,7 @@ def safety_check_node(state: AgentState) -> AgentState:
     thread_id = state.get("thread_id", "default")
     user_message = state["messages"][-1].content
     
-    # Check for prompt injection
+   
     logger.add_thought("Performing safety check on user input")
     
     is_injection, injection_msg = safety.check_prompt_injection(user_message)
@@ -1094,7 +1089,7 @@ def safety_check_node(state: AgentState) -> AgentState:
         logger.add_safety("Prompt Injection", injection_msg, passed=False)
         logger.add_reflection("Rejecting malicious input", "end_conversation")
         
-        # Add rejection message
+       
         rejection = AIMessage(content="I cannot process that request. It appears to contain potentially harmful instructions. I'm designed to follow safe, legitimate IT support procedures. How can I help you with a genuine IT issue?")
         
         return {
@@ -1104,16 +1099,12 @@ def safety_check_node(state: AgentState) -> AgentState:
             "confirmation_pending": False
         }
     
-    # Redact any sensitive data from the message
+   
     safe_message = safety.redact_sensitive_data(user_message)
     
     logger.add_safety("Input Validation", "No threats detected", passed=True)
     logger.add_thought(f"Original message: '{user_message}' -> Safe message: '{safe_message}'")
-    
-    # Add system context from memory
     context = memory.get_context_summary(thread_id)
-    
-    # Create system message with context
     system_msg = SystemMessage(content=f"""You are Sentinel AI, an expert IT Support Assistant. 
 You help users troubleshoot IT issues including VPN, websites, servers, storage, and email.
 Be helpful and professional. Ask clarifying questions if needed.
@@ -1121,7 +1112,6 @@ Be helpful and professional. Ask clarifying questions if needed.
 Current conversation context:
 {context}""")
     
-    # Rebuild messages with system context
     new_messages = [system_msg, HumanMessage(content=safe_message)]
     
     return {
@@ -1134,8 +1124,6 @@ Current conversation context:
 def call_model(state: AgentState):
     """Invoke the LLM with tools"""
     logger.add_thought("Invoking LLM with available tools")
-    
-    # Debug: Check what messages we have
     messages = state['messages']
     logger.add_thought(f"Messages count: {len(messages)}")
     for i, msg in enumerate(messages):
@@ -1148,15 +1136,12 @@ def call_model(state: AgentState):
     )
     
     try:
-        # Try with tools first
         llm_with_tools = llm.bind_tools(tools)
         response = llm_with_tools.invoke(messages)
     except Exception as e:
         logger.add_error(f"Tool binding failed: {str(e)}", "fallback_to_direct_llm")
-        # Fallback to direct LLM without tools
         response = llm.invoke(messages)
     
-    # Log LLM decision
     if hasattr(response, 'tool_calls') and response.tool_calls:
         tool_names = [tc['name'] for tc in response.tool_calls]
         logger.add_thought(f"LLM decided to use tools: {tool_names}")
@@ -1171,9 +1156,7 @@ def should_continue(state: AgentState) -> Literal["tools", "confirm", "end"]:
     messages = state['messages']
     last_message = messages[-1]
     
-    # Check if there are tool calls
     if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
-        # Check if any tool requires confirmation
         for tc in last_message.tool_calls:
             if safety.requires_confirmation(tc['name']):
                 logger.add_thought(f"Confirmation required for: {tc['name']}")
@@ -1184,8 +1167,6 @@ def should_continue(state: AgentState) -> Literal["tools", "confirm", "end"]:
 
 def handle_confirmation(state: AgentState) -> AgentState:
     """Handle user confirmation for risky actions"""
-    # This node would pause for user confirmation
-    # For now, we'll proceed but log the need for confirmation
     logger.add_thought("Requesting user confirmation for risky action")
     
     return {
@@ -1199,14 +1180,12 @@ def process_tool_results(state: AgentState):
     messages = state['messages']
     last_message = messages[-1]
     
-    # Get tool results
+
     if isinstance(last_message, ToolMessage):
         tool_result = last_message.content
         tool_name = last_message.name
         
         logger.add_observation(f"Tool {tool_name} returned result", tool_result[:200])
-        
-        # Add the tool result to messages for next iteration
         return {"messages": messages}
     
     return {"messages": messages}
@@ -1232,14 +1211,12 @@ def save_to_memory(state: AgentState) -> AgentState:
     
     if len(state["messages"]) >= 2:
         user_msg = state["messages"][0].content if isinstance(state["messages"][0], HumanMessage) else ""
-        # Find the last AI response
         ai_response = ""
         for msg in reversed(state["messages"]):
             if isinstance(msg, AIMessage) and not hasattr(msg, 'tool_calls'):
                 ai_response = msg.content
                 break
         
-        # Extract tools used
         tools_used = []
         for msg in state["messages"]:
             if hasattr(msg, 'tool_calls') and msg.tool_calls:
@@ -1253,21 +1230,13 @@ def save_to_memory(state: AgentState) -> AgentState:
 
 
 workflow = StateGraph(AgentState)
-
-# Add nodes
 workflow.add_node("safety_check", safety_check_node)
 workflow.add_node("agent", call_model)
 workflow.add_node("tools", tool_node)
 workflow.add_node("confirm", handle_confirmation)
 workflow.add_node("memory", save_to_memory)
-
-# Set entry point
 workflow.set_entry_point("safety_check")
-
-# Add edges
 workflow.add_edge("safety_check", "agent")
-
-# Conditional edges from agent
 workflow.add_conditional_edges(
     "agent",
     should_continue,
@@ -1278,16 +1247,9 @@ workflow.add_conditional_edges(
     }
 )
 
-# From confirmation to tools (after user approves)
 workflow.add_edge("confirm", "tools")
-
-# From tools back to agent for processing results
 workflow.add_edge("tools", "agent")
-
-# From memory to end
 workflow.add_edge("memory", END)
-
-# Compile the app
 app = workflow.compile()
 
 

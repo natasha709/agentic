@@ -14,7 +14,6 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Load .env from the backend directory
 env_path = Path(__file__).parent / '.env'
 load_dotenv(env_path)
 
@@ -26,7 +25,6 @@ import json
 import asyncio
 import traceback
 
-# Re-enable agent imports for real AI testing
 from agent import (
     app as agent_app, 
     logger, 
@@ -44,7 +42,7 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# Enable CORS for frontend
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -87,29 +85,25 @@ async def chat_endpoint(request: ChatRequest):
     
     print(f"DEBUG: Chat endpoint called - mock_mode={mock_mode}, message='{request.message}'")
     
-    # Initialize logger for this session
+
     logger.set_session(request.thread_id)
     logger.add_log("SYSTEM", f"Starting agentic session for thread: {request.thread_id}", "processing")
     logger.add_log("THOUGHT", f"User query: '{request.message[:100]}...'", "processing")
     
     if mock_mode:
         print("DEBUG: Using mock mode")
-        # Use mock mode
         response_text = f"I understand you're asking about: '{request.message}'. As Sentinel AI, I would help you troubleshoot this IT issue. For website problems, I'd check server status, review logs, and guide you through troubleshooting steps."
         logs = [{"timestamp": "2026-03-03T16:15:00", "category": "SYSTEM", "message": "Mock response generated", "status": "success"}]
         conversation_summary = "Mock mode active"
     else:
         print("DEBUG: Trying real AI mode")
-        # Try real AI first
         try:
-            # Check for API Key
             api_key = os.getenv("GEMINI_API_KEY")
             print(f"DEBUG: API Key exists: {api_key is not None}")
             if not api_key:
                 raise Exception("GEMINI_API_KEY not found")
             
             print("DEBUG: Creating initial state")
-            # Create initial state for agent
             initial_state = {
                 "messages": [HumanMessage(content=request.message)],
                 "thread_id": request.thread_id,
@@ -119,11 +113,9 @@ async def chat_endpoint(request: ChatRequest):
             }
             
             print("DEBUG: About to invoke agent")
-            # Try to invoke the agent
             result = agent_app.invoke(initial_state)
             print("DEBUG: Agent invocation completed")
             
-            # Extract response from agent
             final_answer = ""
             print(f"DEBUG: Extracting response from {len(result.get('messages', []))} messages")
             for msg in reversed(result.get("messages", [])):
@@ -138,7 +130,7 @@ async def chat_endpoint(request: ChatRequest):
             
         except Exception as e:
             print(f"DEBUG: Real AI failed with error: {str(e)}")
-            # Fall back to mock if real AI fails
+
             logger.add_log("ERROR", f"Real AI failed: {str(e)}", "error")
             response_text = f"I understand you're asking about: '{request.message}'. As Sentinel AI, I would help you troubleshoot this IT issue. For website problems, I'd check server status, review logs, and guide you through troubleshooting steps. (Note: Using mock response due to API limitations)"
             logs = logger.get_logs()
@@ -179,33 +171,26 @@ async def websocket_chat(websocket: WebSocket):
     thread_id = "default"
     
     try:
-        # Receive initial message
         data = await websocket.receive_text()
         message_data = json.loads(data)
         message = message_data.get("message", "")
         thread_id = message_data.get("thread_id", "default")
         
-        # Send acknowledgment
         await websocket.send_json({
             "type": "status",
             "data": {"message": "Processing your request...", "thread_id": thread_id}
         })
         
-        # Initialize logger
         logger.set_session(thread_id)
         logger.add_log("SYSTEM", f"WebSocket session started: {thread_id}", "processing")
-        
-        # Check if mock mode
         mock_mode = os.getenv("USE_MOCK_MODE", "false").lower() == "true"
         
         if mock_mode:
-            # Mock streaming response
             response = f"I understand you're asking about: '{message}'. As Sentinel AI, I would help you troubleshoot this IT issue."
             for i in range(0, len(response), 20):
                 chunk = response[i:i+20]
                 await websocket.send_json({"type": "chunk", "data": chunk})
-                await asyncio.sleep(0.05)  # Simulate streaming delay
-            
+                await asyncio.sleep(0.05)  
             await websocket.send_json({
                 "type": "done",
                 "data": {
@@ -215,9 +200,7 @@ async def websocket_chat(websocket: WebSocket):
                 }
             })
         else:
-            # Real AI mode
             try:
-                # Create initial state
                 initial_state = {
                     "messages": [HumanMessage(content=message)],
                     "thread_id": thread_id,
@@ -226,30 +209,26 @@ async def websocket_chat(websocket: WebSocket):
                     "confirmation_pending": False
                 }
                 
-                # Stream logs as they come
                 await websocket.send_json({
                     "type": "log",
                     "data": {"category": "SYSTEM", "message": "Invoking AI agent..."}
                 })
                 
-                # Invoke agent
+               
                 result = agent_app.invoke(initial_state)
-                
-                # Extract response and stream it
                 response_text = ""
                 for msg in reversed(result.get("messages", [])):
                     if hasattr(msg, 'content') and msg.content and not hasattr(msg, 'tool_calls'):
                         response_text = msg.content
                         break
                 
-                # Stream the response in chunks
+               
                 if response_text:
                     for i in range(0, len(response_text), 30):
                         chunk = response_text[i:i+30]
                         await websocket.send_json({"type": "chunk", "data": chunk})
                         await asyncio.sleep(0.02)
                 
-                # Send final message with logs
                 await websocket.send_json({
                     "type": "done",
                     "data": {
@@ -293,15 +272,11 @@ async def handle_confirmation(request: ConfirmationRequest):
             "logs": logger.get_logs()
         }
     
-    # If approved, execute the action
-    # This would re-invoke the agent with the approved action
+   
     try:
         from langchain_core.messages import HumanMessage, AIMessage
         
-        # Execute the approved tool
         if request.tool_name == "restart_service":
-            # from agent import restart_service
-            # result = restart_service.invoke({"service_name": request.parameters.get("service_name")})
             result = f"Service restart simulated for: {request.parameters.get('service_name')}"
             
             return {
@@ -383,8 +358,7 @@ async def get_metrics():
 @app.get("/knowledge")
 async def get_knowledge_base():
     """Get available knowledge base articles"""
-    # from agent import rag
-    # rag.initialize()
+   
     
     return {
         "categories": ["network", "web", "storage", "infrastructure", "email"],
@@ -396,7 +370,7 @@ async def get_knowledge_base():
     }
 
 
-# Simple analytics storage (in production, use a database)
+
 analytics_data = {
     "total_conversations": 0,
     "total_messages": 0,
@@ -468,7 +442,6 @@ async def websocket_chat(websocket: WebSocket):
             msg = json.loads(data)
             
             if msg.get("type") == "message":
-                # Send thinking indicator
                 await websocket.send_json({
                     "type": "log", 
                     "content": "Initializing reasoning loop...",
@@ -490,15 +463,13 @@ async def websocket_chat(websocket: WebSocket):
                 })
                 await asyncio.sleep(0.5)
                 
-                # Simulate tool selection
+            
                 await websocket.send_json({
                     "type": "log", 
                     "content": "Searching knowledge base...",
                     "step": "tool"
                 })
                 await asyncio.sleep(0.8)
-                
-                # Final response
                 await websocket.send_json({
                     "type": "message", 
                     "content": "I've analyzed your issue and found relevant troubleshooting steps in the knowledge base. Let me guide you through the solution..."

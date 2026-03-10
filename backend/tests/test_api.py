@@ -5,8 +5,6 @@ import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 from fastapi.testclient import TestClient
 
-
-# Mock the agent imports before importing main
 with patch('main.load_dotenv'):
     with patch('main.agent_app'):
         with patch('main.logger'):
@@ -53,7 +51,6 @@ class TestChatEndpoint:
     @patch('main.agent_app')
     def test_chat_with_valid_message(self, mock_agent):
         """Test chat endpoint with valid message"""
-        # Mock the async agent invoke
         mock_agent.invoke = AsyncMock(return_value={
             "messages": [
                 {"type": "ai", "content": "Test response"}
@@ -75,7 +72,6 @@ class TestChatEndpoint:
             "thread_id": "test_thread"
         })
         
-        # Should return validation error
         assert response.status_code == 422
     
     def test_chat_with_empty_message(self):
@@ -85,7 +81,6 @@ class TestChatEndpoint:
             "thread_id": "test_thread"
         })
         
-        # Should return validation error (empty string)
         assert response.status_code == 422
 
 
@@ -171,5 +166,4 @@ class TestMetricsEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        # Metrics should contain some system information
         assert isinstance(data, dict)

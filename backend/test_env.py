@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Load .env from the backend directory
 env_path = Path(__file__).parent / '.env'
 load_dotenv(env_path)
 
@@ -10,7 +9,6 @@ print("=== Environment Variables Test ===")
 print(f"GEMINI_API_KEY: {os.getenv('GEMINI_API_KEY')}")
 print(f"USE_MOCK_MODE: {os.getenv('USE_MOCK_MODE')}")
 
-# Test if API key works
 if os.getenv('GEMINI_API_KEY'):
     print("\n=== Testing API Key ===")
     try:

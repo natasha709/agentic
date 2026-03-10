@@ -63,7 +63,7 @@ export default function SupportDashboard() {
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
   const [threadId] = useState('thread-' + Math.random().toString(36).substr(2, 9))
 
-  // Fetch real metrics from backend
+ 
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
@@ -105,8 +105,6 @@ export default function SupportDashboard() {
     setInput('')
     setIsTyping(true)
     setConfirmation(null)
-
-    // Add initial log
     addLog({
       timestamp: new Date().toISOString(),
       category: 'THOUGHT',
@@ -124,7 +122,6 @@ export default function SupportDashboard() {
       const requestTime = Date.now() - start
       const data = response.data
 
-      // Process and add reasoning logs from backend
       if (data.logs && Array.isArray(data.logs)) {
         const newLogs: LogEntry[] = data.logs.map((l: any) => ({
           timestamp: l.timestamp || new Date().toISOString(),
@@ -136,7 +133,6 @@ export default function SupportDashboard() {
         setReasoningLogs(newLogs)
       }
 
-      // Add response time log
       addLog({
         timestamp: new Date().toISOString(),
         category: 'SYSTEM',
@@ -144,7 +140,6 @@ export default function SupportDashboard() {
         status: 'success'
       })
 
-      // Check if confirmation is required
       if (data.metadata?.requires_confirmation) {
         setConfirmation({
           tool_name: 'restart_service',

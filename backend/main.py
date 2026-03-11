@@ -427,18 +427,9 @@ async def track_event(event: dict):
         tool_name = event_data.get("tool_name", "unknown")
         analytics_data["tools_used"][tool_name] = analytics_data["tools_used"].get(tool_name, 0) + 1
     
-    return {"status": "tracked"}
+    return {"status": ""}
 
 
-
-                await asyncio.sleep(0.5)
-                
-            
-                await websocket.send_json({
-                    "type": "log", 
-                    "content": "Searching knowledge base...",
-                    "step": "tool"
-                })
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

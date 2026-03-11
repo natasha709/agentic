@@ -385,7 +385,7 @@ export default function SupportDashboard() {
               <div className="flex items-center justify-center gap-4 mt-3">
                 <p className="text-[10px] text-white/20 uppercase tracking-wider font-medium">Multi-Step Reasoning • Safety Controls • Memory Active</p>
               </div>
-            </div>
+            </div>2
           </section>
 
           {/* Observatory Panel - Reasoning Logs */}
